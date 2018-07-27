@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>父窗口</title>
+  <style>
+    .content {width:900px; margin:auto;}
+    .main {font-size:16px; color:black; font-weight: bold; margin:20px auto; }
+    .red {border: 3px dotted red;}
+  </style>
+</head>
+<body>
+  <div class="content">
+    <div class="main">
+      我是父窗口，我的域名暂定为 parent.test:8080; 我下面红色框中嵌套了一个另一个域名的iframe页面
+      <form action="">
+        <input type="submit" value="父提交">
+      </form>
+    </div>
+    <caption>http://child.test:8080/child.html</caption>
+    <div class="red">
+      <iframe src="http://child.test:8080/child.html" frameborder="0"></iframe>
+    </div>
+  </div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+  $(function() {
+    // 检测的目标form选择器
+    var form_ele = 'form';
+    // 默认并不
+    var submitlock = false;
+    var hasForm = $(document).has(form_ele).length == 1 ? true : false;
+
+    // 表单提交前需要征求子窗口的同意
+    if (hasForm) {
+      $(form_ele).submit(function(event){
+        if(submitlock) {
+          console.log('父：不能提交，我被子表单的命令锁住了')
+          event.preventDefault();
+          alert('请填写子窗口的表单内容');
+        }
+      });
+    }
+    window.addEventListener("message", receiveMessage, false);
+    function receiveMessage(event) 
+    {
+      // 如果不是来自于child.test:8080 直接退出
+      if (event.origin !== 'http://child.test:8080') {
+        return;
+      }
+      if (event.data == 'form-exists?') {
+        if (hasForm) {
+          // alert('我有!');
+          console.log('父：我有');
+          event.source.postMessage('form-exists', event.origin);
+          submitlock = true;
+        }
+      }
+      if (event.data == 'unlock-submit') {
+        submitlock = false;
+      }
+    }
+
+
+  });
+</script>
+</html>

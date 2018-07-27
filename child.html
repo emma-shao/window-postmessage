@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>iframe子窗口</title>
+</head>
+<body>
+  <div class="main">
+    我是子窗口，我有一个form表单，默认隐藏
+  </div>
+  <form action="" style="display:none;">
+    <input type="text" name="">
+    <input type="submit" value="子提交">
+  </form>
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+  $(function() {
+    var isInIframe = (window.location != window.parent.location) ? true : false;
+    if (isInIframe) {
+      // alert('我在iframe中');
+      console.log('子：你有表单吗?');
+      // 向父窗口发送消息
+      window.parent.postMessage('form-exists?', '*');
+     
+
+      // 接收父窗口回应消息
+      window.addEventListener("message", receiveMessage, false);
+      function receiveMessage(event) 
+      {
+        // 来自于非parent.test:8080 则退出 
+        if (event.origin !== 'http://parent.test:8080') {
+          return;
+        }
+        // alert(event.data);
+        if (event.data == 'form-exists') {
+          console.log('子：好的，我知道你有表单，我将显示表单，并且锁住submit，等我提交后你再释放');
+          $('form').show();
+        }
+
+        // 表单提交后，释放父锁
+        $('form').submit(function(event){
+          event.preventDefault(); //只能异步提交，否则就会重新加载，后面的就代码就白费了
+          console.log('子：我提交了表单，父框你可以放开submit了');
+          window.parent.postMessage('unlock-submit', '*');
+        });
+      }
+    }
+
+  });
+</script>
+</html>
