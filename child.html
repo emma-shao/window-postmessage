@@ -34,17 +34,22 @@
         }
         // alert(event.data);
         if (event.data == 'form-exists') {
-          console.log('子：好的，我知道你有表单，我将显示表单，并且锁住submit，等我提交后你再释放');
+          console.log('子：好的，我知道你有表单，我将显示表单，请你锁住form的submit，等我提交后你再释放');
           $('form').show();
         }
 
-        // 表单提交后，释放父锁
-        $('form').submit(function(event){
-          event.preventDefault(); //只能异步提交，否则就会重新加载，后面的就代码就白费了
-          console.log('子：我提交了表单，父框你可以放开submit了');
-          window.parent.postMessage('unlock-submit', '*');
-        });
+        // 父表单提交前请求处理
+        if (event.data == 'before-submit') {
+          console.log('子：收到，我需要滚动到输入框处');
+        }
       }
+
+      // 表单提交后，释放父锁
+      $('form').submit(function(event){
+        event.preventDefault(); //只能异步提交，否则就会重新加载，后面的就代码就白费了
+        console.log('子：我提交了表单，父框你可以放开submit了');
+        window.parent.postMessage('unlock-submit', '*');
+      });
     }
 
   });
